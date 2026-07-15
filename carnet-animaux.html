@@ -1,448 +1,446 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Le carnet d'animaux</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Atkinson+Hyperlegible:wght@400;700&display=swap');
-
-  :root{
-    --bg:#F6F2E7;
-    --paper:#FFFEFB;
-    --ink:#2B3A2F;
-    --ochre:#B8722E;
-    --forest:#4F7A63;
-    --gold:#E4A73B;
-    --soft-line:#DDD5C2;
-    --gentle:#C4633D;
-  }
-
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-
-  body{
-    background:var(--bg);
-    background-image:
-      radial-gradient(circle at 15% 10%, rgba(79,122,99,0.06), transparent 40%),
-      radial-gradient(circle at 85% 90%, rgba(184,114,46,0.07), transparent 45%);
-    color:var(--ink);
-    font-family:'Atkinson Hyperlegible', sans-serif;
-    min-height:100vh;
-  }
-
-  .wrap{
-    max-width:780px;
-    margin:0 auto;
-    padding:34px 18px 80px;
-  }
-
-  header{
-    text-align:center;
-    margin-bottom:28px;
-  }
-  .eyebrow{
-    font-size:13px;
-    letter-spacing:0.14em;
-    text-transform:uppercase;
-    color:var(--forest);
-    font-weight:700;
-    margin-bottom:6px;
-  }
-  h1{
-    font-family:'Fraunces', serif;
-    font-weight:700;
-    font-size:clamp(28px,6vw,42px);
-    margin:0 0 8px;
-    color:var(--ink);
-  }
-  .lede{
-    font-size:17px;
-    color:#5b6b5f;
-    max-width:440px;
-    margin:0 auto;
-  }
-
-  /* Notebook tabs */
-  .tabs{
-    display:flex;
-    justify-content:center;
-    gap:10px;
-    margin:28px 0 0;
-  }
-  .tab{
-    font-family:'Fraunces', serif;
-    font-weight:600;
-    font-size:16px;
-    background:var(--paper);
-    border:2px solid var(--soft-line);
-    border-bottom:none;
-    padding:12px 22px 14px;
-    border-radius:14px 14px 0 0;
-    cursor:pointer;
-    color:#8a9188;
-    position:relative;
-    top:2px;
-    transition:all .15s ease;
-  }
-  .tab.active{
-    color:var(--ink);
-    border-color:var(--ochre);
-    background:var(--paper);
-    box-shadow:0 -4px 14px rgba(184,114,46,0.08);
-  }
-  .tab:hover{color:var(--ink);}
-
-  .page{
-    background:var(--paper);
-    border:2px solid var(--ochre);
-    border-radius:0 16px 16px 16px;
-    padding:30px 26px;
-    box-shadow:0 18px 50px -24px rgba(43,58,47,0.35);
-    position:relative;
-  }
-  .page::before{
-    content:"";
-    position:absolute;
-    left:26px; top:0; bottom:0;
-    width:1px;
-    background:repeating-linear-gradient(to bottom, transparent 0 6px, var(--soft-line) 6px 7px);
-    opacity:0.6;
-  }
-
-  .view{display:none;}
-  .view.active{display:block;}
-
-  /* Discover grid */
-  .grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(120px,1fr));
-    gap:14px;
-    margin-top:6px;
-  }
-  .card{
-    background:#fff;
-    border:2px solid var(--soft-line);
-    border-radius:12px;
-    padding:16px 10px 12px;
-    text-align:center;
-    cursor:pointer;
-    transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease;
-    user-select:none;
-  }
-  .card:nth-child(3n+1){transform:rotate(-1.2deg);}
-  .card:nth-child(3n+2){transform:rotate(0.8deg);}
-  .card:nth-child(3n){transform:rotate(-0.4deg);}
-  .card:hover{
-    border-color:var(--ochre);
-    box-shadow:0 8px 20px -8px rgba(184,114,46,0.35);
-  }
-  .card .emoji{
-    font-size:40px;
-    display:block;
-    margin-bottom:8px;
-  }
-  .card .word{
-    font-family:'Fraunces', serif;
-    font-weight:600;
-    font-size:15px;
-    color:var(--ink);
-    opacity:0;
-    max-height:0;
-    overflow:hidden;
-    transition:opacity .2s ease;
-  }
-  .card.revealed .word{opacity:1; max-height:30px;}
-  .card .stamp{
-    position:absolute;
-    margin-top:-52px;
-    margin-left:70px;
-    font-size:18px;
-    display:none;
-  }
-  .card.revealed .stamp{display:block;}
-
-  .progress-line{
-    margin-top:22px;
-    font-size:14px;
-    color:var(--forest);
-    font-weight:700;
-    text-align:center;
-  }
-
-  /* Quiz view */
-  .quiz-box{text-align:center;}
-  .quiz-emoji{
-    font-size:90px;
-    margin:10px 0 4px;
-    display:block;
-  }
-  .quiz-prompt{
-    font-family:'Fraunces', serif;
-    font-size:19px;
-    font-weight:600;
-    margin-bottom:22px;
-  }
-  .listen-btn{
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    background:none;
-    border:2px solid var(--forest);
-    color:var(--forest);
-    font-family:'Atkinson Hyperlegible', sans-serif;
-    font-weight:700;
-    font-size:14px;
-    padding:8px 16px;
-    border-radius:30px;
-    cursor:pointer;
-    margin-bottom:22px;
-    transition:all .15s ease;
-  }
-  .listen-btn:hover{background:var(--forest); color:#fff;}
-
-  .choices{
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-    max-width:340px;
-    margin:0 auto;
-  }
-  .choice-btn{
-    font-family:'Fraunces', serif;
-    font-size:18px;
-    font-weight:600;
-    padding:16px 18px;
-    border-radius:12px;
-    border:2px solid var(--soft-line);
-    background:#fff;
-    color:var(--ink);
-    cursor:pointer;
-    transition:all .15s ease;
-  }
-  .choice-btn:hover{border-color:var(--ochre); transform:translateY(-1px);}
-  .choice-btn.correct{
-    background:var(--forest);
-    border-color:var(--forest);
-    color:#fff;
-  }
-  .choice-btn.wrong{
-    background:#fbeee7;
-    border-color:var(--gentle);
-    color:var(--gentle);
-  }
-
-  .feedback{
-    margin-top:20px;
-    font-size:16px;
-    font-weight:700;
-    min-height:24px;
-  }
-  .feedback.good{color:var(--forest);}
-  .feedback.soft{color:var(--gentle);}
-
-  .next-btn{
-    margin-top:18px;
-    font-family:'Atkinson Hyperlegible', sans-serif;
-    font-weight:700;
-    font-size:15px;
-    background:var(--ochre);
-    color:#fff;
-    border:none;
-    padding:12px 26px;
-    border-radius:30px;
-    cursor:pointer;
-    display:none;
-  }
-  .next-btn.show{display:inline-block;}
-
-  .score-line{
-    margin-top:26px;
-    font-size:14px;
-    color:#8a9188;
-  }
-
-  footer{
-    text-align:center;
-    margin-top:26px;
-    font-size:13px;
-    color:#9aa39a;
-  }
-
-  @media (prefers-reduced-motion: reduce){
-    *{transition:none !important;}
-  }
-</style>
-</head>
-<body>
-
-<div class="wrap">
-  <header>
-    <div class="eyebrow">Carnet de terrain</div>
-    <h1>Le carnet d'animaux</h1>
-    <p class="lede">Découvre les animaux, apprends leur nom, et teste-toi quand tu veux.</p>
-  </header>
-
-  <div class="tabs">
-    <button class="tab active" data-view="discover">Découvrir</button>
-    <button class="tab" data-view="quiz">Jeu</button>
-  </div>
-
-  <div class="page">
-
-    <div class="view active" id="view-discover">
-      <div class="grid" id="grid"></div>
-      <div class="progress-line" id="progress-line">0 / 16 animaux découverts</div>
-    </div>
-
-    <div class="view" id="view-quiz">
-      <div class="quiz-box">
-        <span class="quiz-emoji" id="quiz-emoji">🦁</span>
-        <div class="quiz-prompt">Quel est cet animal ?</div>
-        <button class="listen-btn" id="listen-btn">🔊 Écouter</button>
-        <div class="choices" id="choices"></div>
-        <div class="feedback" id="feedback"></div>
-        <button class="next-btn" id="next-btn">Animal suivant →</button>
-        <div class="score-line" id="score-line">0 bonnes réponses</div>
-      </div>
-    </div>
-
-  </div>
-
-  <footer>Astuce : le bouton 🔊 lit le mot à voix haute.</footer>
-</div>
-
-<script>
-(function(){
-  const animals = [
-    {emoji:"🦁", word:"Lion"},
-    {emoji:"🐘", word:"Éléphant"},
-    {emoji:"🦒", word:"Girafe"},
-    {emoji:"🐯", word:"Tigre"},
-    {emoji:"🐒", word:"Singe"},
-    {emoji:"🦓", word:"Zèbre"},
-    {emoji:"🦛", word:"Hippopotame"},
-    {emoji:"🐊", word:"Crocodile"},
-    {emoji:"🐬", word:"Dauphin"},
-    {emoji:"🐢", word:"Tortue"},
-    {emoji:"🦋", word:"Papillon"},
-    {emoji:"🦔", word:"Hérisson"},
-    {emoji:"🦊", word:"Renard"},
-    {emoji:"🦅", word:"Aigle"},
-    {emoji:"🦈", word:"Requin"},
-    {emoji:"🐧", word:"Pingouin"},
-  ];
-
-  const discovered = new Set();
-  const grid = document.getElementById('grid');
-  const progressLine = document.getElementById('progress-line');
-
-  function speak(text){
-    if(!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'fr-FR';
-    u.rate = 0.9;
-    window.speechSynthesis.speak(u);
-  }
-
-  animals.forEach((a, i)=>{
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `<span class="emoji">${a.emoji}</span><span class="word">${a.word}</span><span class="stamp">✔️</span>`;
-    card.addEventListener('click', ()=>{
-      card.classList.add('revealed');
-      discovered.add(i);
-      progressLine.textContent = `${discovered.size} / ${animals.length} animaux découverts`;
-      speak(a.word);
-    });
-    grid.appendChild(card);
-  });
-
-  // Tabs
-  const tabs = document.querySelectorAll('.tab');
-  const views = document.querySelectorAll('.view');
-  tabs.forEach(tab=>{
-    tab.addEventListener('click', ()=>{
-      tabs.forEach(t=>t.classList.remove('active'));
-      tab.classList.add('active');
-      views.forEach(v=>v.classList.remove('active'));
-      document.getElementById('view-' + tab.dataset.view).classList.add('active');
-      if(tab.dataset.view === 'quiz') newQuestion();
-    });
-  });
-
-  // Quiz
-  const quizEmoji = document.getElementById('quiz-emoji');
-  const choicesEl = document.getElementById('choices');
-  const feedbackEl = document.getElementById('feedback');
-  const nextBtn = document.getElementById('next-btn');
-  const listenBtn = document.getElementById('listen-btn');
-  const scoreLine = document.getElementById('score-line');
-
-  let current = null;
-  let score = 0;
-  let asked = 0;
-  let answered = false;
-
-  function shuffle(arr){
-    return [...arr].sort(()=>Math.random()-0.5);
-  }
-
-  function newQuestion(){
-    answered = false;
-    feedbackEl.textContent = '';
-    feedbackEl.className = 'feedback';
-    nextBtn.classList.remove('show');
-
-    current = animals[Math.floor(Math.random()*animals.length)];
-    quizEmoji.textContent = current.emoji;
-
-    const distractors = shuffle(animals.filter(a=>a.word !== current.word)).slice(0,2);
-    const options = shuffle([current, ...distractors]);
-
-    choicesEl.innerHTML = '';
-    options.forEach(opt=>{
-      const btn = document.createElement('button');
-      btn.className = 'choice-btn';
-      btn.textContent = opt.word;
-      btn.addEventListener('click', ()=> handleAnswer(btn, opt));
-      choicesEl.appendChild(btn);
-    });
-  }
-
-  function handleAnswer(btn, opt){
-    if(answered) return;
-    answered = true;
-    asked++;
-
-    const allBtns = choicesEl.querySelectorAll('.choice-btn');
-
-    if(opt.word === current.word){
-      btn.classList.add('correct');
-      score++;
-      feedbackEl.textContent = 'Bravo, bonne réponse !';
-      feedbackEl.className = 'feedback good';
-      speak('Bravo, c\'est ' + current.word);
-    } else {
-      btn.classList.add('wrong');
-      allBtns.forEach(b=>{
-        if(b.textContent === current.word) b.classList.add('correct');
-      });
-      feedbackEl.textContent = `Presque ! C'était : ${current.word}`;
-      feedbackEl.className = 'feedback soft';
-      speak('C\'est ' + current.word);
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carnet des animaux</title>
+  <style>
+    :root {
+      --bg-1: #ff9a9e;
+      --bg-2: #fad0c4;
+      --bg-3: #fbc2eb;
+      --bg-4: #a18cd1;
+      --card: rgba(255, 255, 255, 0.2);
+      --txt: #1f1147;
+      --accent: #ff4ecd;
+      --accent-2: #00d4ff;
+      --sun: #ffd166;
+      --success: #14cc88;
     }
 
-    scoreLine.textContent = `${score} bonne${score>1?'s':''} réponse${score>1?'s':''} sur ${asked}`;
-    nextBtn.classList.add('show');
-  }
+    * {
+      box-sizing: border-box;
+    }
 
-  nextBtn.addEventListener('click', newQuestion);
-  listenBtn.addEventListener('click', ()=> speak(current ? current.word : ''));
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: "Poppins", "Avenir Next", "Segoe UI", sans-serif;
+      color: var(--txt);
+      min-height: 100%;
+      overflow-x: hidden;
+      background: linear-gradient(120deg, var(--bg-1), var(--bg-2), var(--bg-3), var(--bg-4));
+      background-size: 300% 300%;
+      animation: gradientShift 12s ease infinite;
+    }
 
-})();
-</script>
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      filter: blur(70px);
+      z-index: -2;
+      opacity: 0.55;
+      pointer-events: none;
+    }
 
+    body::before {
+      top: -120px;
+      left: -100px;
+      background: #fff27a;
+      animation: floatBlob 9s ease-in-out infinite;
+    }
+
+    body::after {
+      right: -140px;
+      bottom: -140px;
+      background: #7afcff;
+      animation: floatBlob 11s ease-in-out infinite reverse;
+    }
+
+    .sparkles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .sparkle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: white;
+      border-radius: 50%;
+      box-shadow: 0 0 12px rgba(255,255,255,0.9);
+      animation: twinkle linear infinite;
+      opacity: 0.8;
+    }
+
+    .container {
+      width: min(1100px, 94vw);
+      margin: 2.5rem auto 3rem;
+      display: grid;
+      gap: 1.25rem;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(255,255,255,0.35), rgba(255,255,255,0.12));
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 28px;
+      padding: 2rem;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 18px 50px rgba(31, 17, 71, 0.22);
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
+    }
+
+    .hero::before {
+      content: "✨";
+      position: absolute;
+      font-size: 3rem;
+      right: 1rem;
+      top: 0.6rem;
+      animation: pulse 1.8s infinite;
+      filter: drop-shadow(0 0 8px rgba(255,255,255,0.8));
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1.05;
+      letter-spacing: 0.2px;
+      text-wrap: balance;
+      text-shadow: 0 3px 14px rgba(255,255,255,0.65);
+    }
+
+    .subtitle {
+      margin: 0.6rem 0 1.2rem;
+      font-weight: 600;
+      opacity: 0.9;
+    }
+
+    .btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      border: 0;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 0.8rem 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.2s ease;
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(31, 17, 71, 0.25);
+    }
+
+    .btn-primary {
+      background: linear-gradient(45deg, #ff4ecd, #ff7a00);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(45deg, #00c6ff, #0072ff);
+    }
+
+    .btn:active {
+      transform: translateY(1px) scale(0.98);
+    }
+
+    .btn:hover {
+      transform: translateY(-3px) scale(1.04);
+      box-shadow: 0 13px 28px rgba(31, 17, 71, 0.32);
+      filter: saturate(1.2);
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .chip {
+      background: rgba(255,255,255,0.62);
+      border: 1px solid rgba(255,255,255,0.7);
+      padding: 0.42rem 0.8rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      box-shadow: 0 4px 12px rgba(31, 17, 71, 0.14);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.45);
+      border-radius: 22px;
+      padding: 1rem;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 26px rgba(31,17,71,0.16);
+      transition: transform 0.22s ease, box-shadow 0.22s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: auto -30% -55% -30%;
+      height: 70%;
+      background: linear-gradient( to top, rgba(255,255,255,0.3), transparent );
+      transform: rotate(3deg);
+      pointer-events: none;
+    }
+
+    .card:hover {
+      transform: translateY(-6px) rotate(-0.8deg) scale(1.015);
+      box-shadow: 0 15px 30px rgba(31,17,71,0.22);
+    }
+
+    .emoji {
+      font-size: 2rem;
+      margin-bottom: 0.3rem;
+      display: inline-block;
+      animation: wiggle 3.2s ease-in-out infinite;
+      transform-origin: 50% 80%;
+    }
+
+    .card h3 {
+      margin: 0.1rem 0 0.4rem;
+    }
+
+    .bar {
+      height: 8px;
+      background: rgba(255,255,255,0.5);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 0.7rem;
+    }
+
+    .fill {
+      height: 100%;
+      width: var(--w);
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      box-shadow: 0 0 12px rgba(0, 212, 255, 0.7);
+      animation: shimmer 2s linear infinite;
+      background-size: 200% 100%;
+    }
+
+    .quote {
+      text-align: center;
+      font-weight: 700;
+      padding: 1rem 1.2rem;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.55);
+      border: 1px dashed rgba(255,255,255,0.8);
+      box-shadow: inset 0 0 16px rgba(255,255,255,0.5);
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 0.92rem;
+      opacity: 0.8;
+      margin-top: 0.4rem;
+    }
+
+    .floating {
+      position: fixed;
+      right: 1.1rem;
+      bottom: 1.1rem;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(45deg, #00dbde, #fc00ff);
+      color: #fff;
+      padding: 0.85rem 1rem;
+      font-weight: 800;
+      box-shadow: 0 10px 24px rgba(31,17,71,0.3);
+      cursor: pointer;
+      animation: bounce 2.5s infinite;
+    }
+
+    .floating:hover {
+      transform: scale(1.08) rotate(-4deg);
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes twinkle {
+      0% { transform: translateY(0) scale(0.6); opacity: 0.2; }
+      50% { opacity: 0.95; }
+      100% { transform: translateY(-120vh) scale(1.2); opacity: 0; }
+    }
+
+    @keyframes floatBlob {
+      0%,100% { transform: translate(0,0) scale(1); }
+      50% { transform: translate(25px, 20px) scale(1.08); }
+    }
+
+    @keyframes shimmer {
+      from { background-position: 0 0; }
+      to { background-position: 200% 0; }
+    }
+
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(0deg); }
+      20% { transform: rotate(-9deg); }
+      40% { transform: rotate(7deg); }
+      60% { transform: rotate(-5deg); }
+      80% { transform: rotate(3deg); }
+    }
+
+    @keyframes pulse {
+      0%,100% { transform: scale(1); }
+      50% { transform: scale(1.18); }
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    @media (max-width: 640px) {
+      .hero { padding: 1.4rem; }
+      .btn { width: 100%; }
+      .floating { right: 0.8rem; bottom: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="sparkles" id="sparkles"></div>
+
+  <main class="container">
+    <section class="hero">
+      <h1>🌈 Luca et les Animaux 🐾</h1>
+      <p class="subtitle">Un carnet ultra visuel, coloré et joyeux — version dopamine ++</p>
+      <div class="btns">
+        <button class="btn btn-primary" id="surpriseBtn">🎉 Surprise</button>
+        <button class="btn btn-secondary" id="partyBtn">💥 Party mode</button>
+      </div>
+      <div class="chips">
+        <span class="chip">✨ Coloré</span>
+        <span class="chip">🌀 Animé</span>
+        <span class="chip">💖 Feel-good</span>
+        <span class="chip">🐶 Animal vibes</span>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <div class="emoji">🦊</div>
+        <h3>Renard</h3>
+        <p>Rapide, malin et beaucoup trop stylé dans ce décor néon.</p>
+        <div class="bar"><div class="fill" style="--w:88%"></div></div>
+      </article>
+
+      <article class="card">
+        <div class="emoji">🦉</div>
+        <h3>Hibou</h3>
+        <p>Sage de nuit, il surveille les étoiles qui scintillent.</p>
+        <div class="bar"><div class="fill" style="--w:76%"></div></div>
+      </article>
+
+      <article class="card">
+        <div class="emoji">🐬</div>
+        <h3>Dauphin</h3>
+        <p>Énergie positive maximale, toujours prêt à faire la fête.</p>
+        <div class="bar"><div class="fill" style="--w:94%"></div></div>
+      </article>
+
+      <article class="card">
+        <div class="emoji">🦁</div>
+        <h3>Lion</h3>
+        <p>Charisme +100, roi du style avec rugissement arc-en-ciel.</p>
+        <div class="bar"><div class="fill" style="--w:90%"></div></div>
+      </article>
+    </section>
+
+    <section class="quote" id="quoteBox">“Chaque animal est une étincelle de magie.”</section>
+    <p class="footer">Fait avec 💜 pour Luca.</p>
+  </main>
+
+  <button class="floating" id="loveBtn">💖 +Dopamine</button>
+
+  <script>
+    const sparkles = document.getElementById('sparkles');
+    for (let i = 0; i < 48; i++) {
+      const s = document.createElement('span');
+      s.className = 'sparkle';
+      s.style.left = Math.random() * 100 + 'vw';
+      s.style.top = (Math.random() * 100 + 20) + 'vh';
+      s.style.animationDuration = (6 + Math.random() * 10) + 's';
+      s.style.animationDelay = (-Math.random() * 12) + 's';
+      s.style.transform = `scale(${0.4 + Math.random()})`;
+      sparkles.appendChild(s);
+    }
+
+    const quotes = [
+      '“Chaque animal est une étincelle de magie.”',
+      '“Un monde plus doux commence avec un regard animal.”',
+      '“Couleurs + animaux = bonheur instantané.”',
+      '“Aujourd\'hui, on choisit la joie sauvage.”'
+    ];
+
+    const quoteBox = document.getElementById('quoteBox');
+    const surpriseBtn = document.getElementById('surpriseBtn');
+    const partyBtn = document.getElementById('partyBtn');
+    const loveBtn = document.getElementById('loveBtn');
+
+    surpriseBtn.addEventListener('click', () => {
+      quoteBox.textContent = quotes[Math.floor(Math.random() * quotes.length)];
+      quoteBox.animate([
+        { transform: 'scale(1)', filter: 'hue-rotate(0deg)' },
+        { transform: 'scale(1.05)', filter: 'hue-rotate(80deg)' },
+        { transform: 'scale(1)', filter: 'hue-rotate(0deg)' }
+      ], { duration: 450, easing: 'ease-out' });
+    });
+
+    partyBtn.addEventListener('click', () => {
+      document.body.animate([
+        { filter: 'hue-rotate(0deg) saturate(1)' },
+        { filter: 'hue-rotate(100deg) saturate(1.4)' },
+        { filter: 'hue-rotate(200deg) saturate(1.2)' },
+        { filter: 'hue-rotate(0deg) saturate(1)' }
+      ], { duration: 1100, easing: 'ease-in-out' });
+    });
+
+    loveBtn.addEventListener('click', (e) => {
+      for (let i = 0; i < 16; i++) {
+        const heart = document.createElement('span');
+        heart.textContent = ['💖','✨','💫','🌟'][Math.floor(Math.random()*4)];
+        heart.style.position = 'fixed';
+        heart.style.left = (e.clientX - 15 + (Math.random() * 80 - 40)) + 'px';
+        heart.style.top = (e.clientY - 10 + (Math.random() * 30 - 15)) + 'px';
+        heart.style.fontSize = (16 + Math.random() * 22) + 'px';
+        heart.style.pointerEvents = 'none';
+        heart.style.zIndex = 9999;
+        document.body.appendChild(heart);
+
+        heart.animate([
+          { transform: 'translateY(0) scale(0.8)', opacity: 1 },
+          { transform: `translateY(-${60 + Math.random() * 90}px) translateX(${Math.random() * 60 - 30}px) scale(1.25)`, opacity: 0 }
+        ], { duration: 950 + Math.random() * 450, easing: 'cubic-bezier(.2,.8,.2,1)' });
+
+        setTimeout(() => heart.remove(), 1500);
+      }
+    });
+  </script>
 </body>
 </html>
